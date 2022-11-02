@@ -1,23 +1,23 @@
 const express = require('express');
-var bodyParser = require('body-parser')
-const client =require('./config/db');
+const client = require('./config/db');
+const csv = require('csvtojson')
 
 const app = express();
 
-app.use(bodyParser.json()) 
 
-const fs = require('fs').promises;
-
-(async() => {
-    const stat = await fs.lstat('sample-user-data.csv');
-    console.log(stat.isFile());
-})().catch(console.error)
-
-app.post('/api/v1/upload-user/add',async(req,res)=>{
+app.post('/api/v1/upload-user/add', async (req, res) => {
     try {
-        const data = await client.query("COPY users(name , email ,phone , city) FROM 'sample-user-data.csv' delimiter ',' CSV HEADER")
+        const json = await csv()
+            .fromFile('./sample-user-data.csv')
+
+        let data = JSON.parse(JSON.stringify(json))
+        console.log(json)
+        data.map(async (data) => {
+            await client.query(`INSERT INTO users(name , email, phone , city) VALUES ('${data.name}' ,'${data.email}', '${data.phone}', '${data.city}')`)
+        })
+
         res.status(201).json({
-            success:true,
+            success: true,
             data
 
         })
@@ -26,8 +26,8 @@ app.post('/api/v1/upload-user/add',async(req,res)=>{
     }
 })
 
-const PORT = process.env.PORT ||5000;
+const PORT = process.env.PORT || 5000;
 
 
 
-app.listen(PORT,console.log(`Server Runing on port ${PORT}` ));
+app.listen(PORT, console.log(`Server Runing on port ${PORT}`));
