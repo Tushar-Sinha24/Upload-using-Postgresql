@@ -1,15 +1,10 @@
 const express = require('express');
 var bodyParser = require('body-parser')
 const client =require('./config/db');
-const csv=require('csvtojson');
 
 const app = express();
 
-app.use(bodyParser.json())
-
-
-
-let path = "sample-user-data.csv"; 
+app.use(bodyParser.json()) 
 
 const fs = require('fs').promises;
 
